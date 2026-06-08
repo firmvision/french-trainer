@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>French Trainer — Road to CLB 7</title>
+<style>
+  :root{
+    --bleu:#0055A4; --rouge:#EF4135; --blanc:#ffffff;
+    --bg:#f5f7fb; --card:#ffffff; --ink:#1c2434; --muted:#6b7689;
+    --line:#e3e8f0; --good:#1f9d55; --bad:#d64545; --warn:#c77c0a;
+    --shadow:0 6px 22px rgba(20,40,80,.08);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:linear-gradient(100deg,var(--bleu),#0a6bd4);color:#fff;padding:18px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header .flag{width:34px;height:24px;border-radius:4px;overflow:hidden;display:flex;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+  header .flag i{flex:1}
+  header .flag .b{background:#0055A4}header .flag .w{background:#fff}header .flag .r{background:#EF4135}
+  header h1{font-size:1.15rem;margin:0;font-weight:700}
+  header .sub{font-size:.8rem;opacity:.9}
+  header .stats{margin-left:auto;display:flex;gap:18px;font-size:.85rem;text-align:center}
+  header .stats b{display:block;font-size:1.15rem}
+  .wrap{max-width:880px;margin:0 auto;padding:22px 16px 80px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .tile{cursor:pointer;transition:transform .12s,box-shadow .12s;position:relative;overflow:hidden}
+  .tile:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(20,40,80,.14)}
+  .tile h3{margin:.2rem 0 .3rem;font-size:1.05rem}
+  .tile p{margin:0;color:var(--muted);font-size:.85rem}
+  .tile .ico{font-size:1.7rem}
+  .tile .tag{position:absolute;top:12px;right:12px;font-size:.68rem;background:#eef3fb;color:var(--bleu);padding:3px 8px;border-radius:20px;font-weight:600}
+  .tile.focus{border-color:var(--rouge)}
+  .tile.focus .tag{background:#fdeaea;color:var(--rouge)}
+  h2.section{font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:26px 4px 10px;font-weight:700}
+  .btn{background:var(--bleu);color:#fff;border:none;padding:11px 18px;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:filter .12s}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:#eef3fb;color:var(--bleu)}
+  .btn.red{background:var(--rouge)}
+  .btn.sm{padding:8px 13px;font-size:.85rem}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .progress{height:9px;background:#eef1f6;border-radius:20px;overflow:hidden;margin:6px 0 2px}
+  .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--bleu),var(--rouge));transition:width .3s}
+  .q-prompt{font-size:1.25rem;margin:6px 0 16px;font-weight:600}
+  .q-prompt .blank{color:var(--rouge);font-weight:800}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:13px 15px;margin:8px 0;font-size:1rem;cursor:pointer;transition:.12s}
+  .opt:hover{border-color:var(--bleu);background:#f7faff}
+  .opt.correct{border-color:var(--good);background:#eafaf0}
+  .opt.wrong{border-color:var(--bad);background:#fdecec}
+  .opt:disabled{cursor:default}
+  input.txt{width:100%;padding:13px 15px;border:2px solid var(--line);border-radius:12px;font-size:1.05rem;font-family:inherit}
+  input.txt:focus{outline:none;border-color:var(--bleu)}
+  .feedback{margin-top:14px;padding:13px 15px;border-radius:12px;font-size:.95rem;display:none}
+  .feedback.show{display:block}
+  .feedback.ok{background:#eafaf0;border:1px solid #bfe8cd}
+  .feedback.no{background:#fdecec;border:1px solid #f3c9c9}
+  .feedback.tip{background:#fff6e8;border:1px solid #f3deb6}
+  .feedback b{color:var(--bleu)}
+  .muted{color:var(--muted)}
+  .center{text-align:center}
+  .big{font-size:2.4rem;font-weight:800;margin:6px 0}
+  .pill{display:inline-block;background:#eef3fb;color:var(--bleu);padding:4px 12px;border-radius:20px;font-size:.85rem;font-weight:600;margin:3px}
+  .speak-btn{background:var(--rouge);color:#fff;border:none;border-radius:50%;width:64px;height:64px;font-size:1.6rem;cursor:pointer;box-shadow:var(--shadow)}
+  .speak-btn:active{transform:scale(.95)}
+  .back{background:none;border:none;color:var(--bleu);font-weight:600;cursor:pointer;font-size:.9rem;padding:0;margin-bottom:8px}
+  .hidden{display:none}
+  .deck-list{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .deck-list button{border:2px solid var(--line);background:#fff;border-radius:20px;padding:7px 14px;cursor:pointer;font-size:.85rem;font-weight:600}
+  .deck-list button.active{border-color:var(--bleu);background:#eef3fb;color:var(--bleu)}
+  table.recap{width:100%;border-collapse:collapse;margin-top:10px}
+  table.recap td{padding:7px 4px;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:top}
+  table.recap td:first-child{width:26px}
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:24px}
+  .lesson{font-size:.98rem;line-height:1.65}
+  .lesson h4{margin:16px 0 4px;color:var(--bleu);font-size:1rem}
+  .lesson table{width:100%;border-collapse:collapse;margin:8px 0}
+  .lesson td,.lesson th{border:1px solid var(--line);padding:6px 9px;text-align:left;font-size:.9rem}
+  .lesson th{background:#eef3fb}
+  .lesson .ex{background:#f7faff;border-left:3px solid var(--bleu);padding:6px 10px;margin:6px 0;border-radius:4px}
+  .lesson .ex em{color:var(--muted);font-style:normal}
+  @media(max-width:520px){header .stats{width:100%;margin-left:0;justify-content:space-around}.q-prompt{font-size:1.1rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="flag"><i class="b"></i><i class="w"></i><i class="r"></i></div>
+  <div>
+    <h1>French Trainer</h1>
+    <div class="sub" id="whoami">Road to CLB 7</div>
+  </div>
+  <div class="stats">
+    <div><b id="stStreak">0</b>🔥 streak</div>
+    <div><b id="stXp">0</b>XP</div>
+    <div><b id="stLevel">A1</b>level</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="view"></div>
+</div>
+<footer>Your progress is saved automatically on this device. Open this file anytime to continue. · Bon courage !</footer>
+
+<script>
+/* ============ DATA ============ */
+
+const PLACEMENT = [
+  {lvl:"A1", q:"Je ___ étudiant.", opts:["suis","es","est","sont"], a:0},
+  {lvl:"A1", q:'How do you say "the cat"?', opts:["la chat","le chat","les chat","un chats"], a:1},
+  {lvl:"A1", q:"Comment ___-tu ? — Ça va bien.", opts:["allez","vas","va","allons"], a:1},
+  {lvl:"A2", q:"Hier, j'___ mangé au restaurant.", opts:["ai","suis","as","a"], a:0},
+  {lvl:"A2", q:"Elle ___ allée au marché ce matin.", opts:["a","est","ont","sont"], a:1},
+  {lvl:"A2", q:"Quand j'étais petit, je ___ au foot.", opts:["joue","jouais","joué","jouerai"], a:1},
+  {lvl:"B1", q:"Si j'avais de l'argent, je ___ une maison.", opts:["achète","achèterais","acheté","acheterai"], a:1},
+  {lvl:"B1", q:"Il faut que tu ___ tout de suite.", opts:["viens","viennes","venir","venu"], a:1},
+  {lvl:"B1", q:'"Le livre ___ je t\'ai parlé est ici." (the book I told you about)', opts:["que","qui","dont","où"], a:2},
+  {lvl:"B2", q:"Bien qu'il ___ riche, il n'est pas heureux.", opts:["est","soit","était","sera"], a:1},
+  {lvl:"B2", q:'"Appréhender un examen" means to ___ it.', opts:["pass","dread","retake","forget"], a:1},
+  {lvl:"B2", q:"Si j'avais su, je ne ___ jamais venu.", opts:["serais","serai","suis","étais"], a:0},
+];
+
+const VERBS = [
+  {q:"Hier, je ___ (manger) une pomme.", accept:["ai mangé","j'ai mangé"], tense:"Passé composé", ex:"avoir + past participle: <b>j'ai mangé</b>. -ER verbs end in -é."},
+  {q:"Nous ___ (parler) avec le professeur hier.", accept:["avons parlé","nous avons parlé"], tense:"Passé composé", ex:"<b>nous avons parlé</b> — auxiliary 'avoir' (avons) + parlé."},
+  {q:"Elle ___ (aller) au marché ce matin.", accept:["est allée","est allee","est allé","est alle"], tense:"Passé composé (être)", ex:"Aller uses ÊTRE: <b>elle est allée</b> (extra -e: subject is feminine)."},
+  {q:"Ils ___ (finir) leurs devoirs.", accept:["ont fini","ils ont fini"], tense:"Passé composé", ex:"-IR verbs: participle ends -i. <b>ils ont fini</b>."},
+  {q:"Tu ___ (faire) la cuisine hier soir.", accept:["as fait","tu as fait"], tense:"Passé composé", ex:"Irregular: faire → fait. <b>tu as fait</b>."},
+  {q:"Je ___ (prendre) le bus ce matin.", accept:["ai pris","j'ai pris"], tense:"Passé composé", ex:"Irregular: prendre → pris. <b>j'ai pris</b>."},
+  {q:"Nous ___ (venir) à la fête samedi.", accept:["sommes venus","sommes venues","nous sommes venus"], tense:"Passé composé (être)", ex:"Venir uses ÊTRE: <b>nous sommes venus</b>."},
+  {q:"Vous ___ (voir) le film ?", accept:["avez vu","vous avez vu"], tense:"Passé composé", ex:"Irregular: voir → vu. <b>vous avez vu</b>."},
+  {q:"Quand j'étais petit, je ___ (jouer) au foot.", accept:["jouais","je jouais"], tense:"Imparfait", ex:"Habit in the past = imparfait. <b>je jouais</b> (-ais)."},
+  {q:"Avant, nous ___ (habiter) à Lagos.", accept:["habitions","nous habitions"], tense:"Imparfait", ex:"Imparfait nous = -ions. <b>nous habitions</b>."},
+  {q:"Il ___ (faire) beau quand nous sommes sortis.", accept:["faisait","il faisait"], tense:"Imparfait", ex:"Description/background = imparfait. <b>il faisait</b>."},
+  {q:"Tu ___ (être) très fatigué hier.", accept:["étais","tu étais","etais"], tense:"Imparfait", ex:"être imparfait: j'étais, tu <b>étais</b>, il était..."},
+  {q:"Vous ___ (avoir) raison.", accept:["aviez","vous aviez"], tense:"Imparfait", ex:"avoir imparfait: <b>vous aviez</b>."},
+  {q:"Demain, je ___ (aller) travailler. (futur proche)", accept:["vais aller","je vais aller"], tense:"Futur proche", ex:"aller (present) + infinitive: <b>je vais aller</b>."},
+  {q:"Si j'avais le temps, je ___ (voyager). ", accept:["voyagerais","je voyagerais"], tense:"Conditionnel", ex:"Conditional: infinitive + -ais. <b>je voyagerais</b>."},
+  {q:"Je ___ (vouloir) un café, s'il vous plaît. (politeness)", accept:["voudrais","je voudrais"], tense:"Conditionnel", ex:"Polite request: <b>je voudrais</b> = 'I would like'."},
+  {q:"Présent : Nous ___ (faire) nos devoirs maintenant.", accept:["faisons","nous faisons"], tense:"Présent", ex:"faire present: <b>nous faisons</b> (irregular)."},
+  {q:"Présent : Ils ___ (prendre) le métro.", accept:["prennent","ils prennent"], tense:"Présent", ex:"prendre present: ils <b>prennent</b> (double n)."},
+  {q:"Présent : Vous ___ (venir) souvent ici ?", accept:["venez","vous venez"], tense:"Présent", ex:"venir present: <b>vous venez</b>."},
+  {q:"Elles ___ (rester) à la maison hier.", accept:["sont restées","sont restees","sont restés"], tense:"Passé composé (être)", ex:"rester uses ÊTRE: <b>elles sont restées</b> (feminine plural: -ées)."},
+];
+
+const VOCAB = {
+  "Immigration & Work":[
+    {fr:"un emploi", en:"a job / employment", ex:"Je cherche un emploi au Canada."},
+    {fr:"un permis de travail", en:"a work permit", ex:"J'ai besoin d'un permis de travail."},
+    {fr:"la résidence permanente", en:"permanent residence", ex:"Mon but est la résidence permanente."},
+    {fr:"postuler", en:"to apply (for a job)", ex:"Je vais postuler à cette offre."},
+    {fr:"une entreprise", en:"a company", ex:"Elle travaille dans une grande entreprise."},
+    {fr:"un entretien", en:"an interview", ex:"J'ai un entretien demain."},
+    {fr:"les compétences", en:"skills", ex:"Mes compétences sont recherchées."},
+    {fr:"un diplôme", en:"a degree / diploma", ex:"J'ai un diplôme en ingénierie."},
+    {fr:"l'expérience (f)", en:"experience", ex:"J'ai cinq ans d'expérience."},
+    {fr:"s'installer", en:"to settle (somewhere)", ex:"Je veux m'installer à Montréal."},
+  ],
+  "Daily life":[
+    {fr:"faire les courses", en:"to do the grocery shopping", ex:"Je fais les courses le samedi."},
+    {fr:"se réveiller", en:"to wake up", ex:"Je me réveille à six heures."},
+    {fr:"prendre le bus", en:"to take the bus", ex:"Je prends le bus pour aller au travail."},
+    {fr:"la nourriture", en:"food", ex:"La nourriture ici est délicieuse."},
+    {fr:"un logement", en:"housing / accommodation", ex:"Je cherche un logement pas cher."},
+    {fr:"le quartier", en:"the neighbourhood", ex:"J'aime mon quartier."},
+    {fr:"rencontrer", en:"to meet", ex:"J'ai rencontré mes voisins."},
+    {fr:"apprendre", en:"to learn", ex:"J'apprends le français."},
+  ],
+  "Time & the past":[
+    {fr:"hier", en:"yesterday", ex:"Hier, il a plu."},
+    {fr:"avant", en:"before / in the past", ex:"Avant, j'habitais à Lagos."},
+    {fr:"déjà", en:"already", ex:"J'ai déjà mangé."},
+    {fr:"ne... jamais", en:"never", ex:"Je n'ai jamais visité Québec."},
+    {fr:"toujours", en:"always / still", ex:"J'étudie toujours le soir."},
+    {fr:"souvent", en:"often", ex:"Je voyageais souvent."},
+    {fr:"il y a (deux ans)", en:"(two years) ago", ex:"Il y a deux ans, j'ai commencé."},
+    {fr:"pendant", en:"during / for", ex:"J'ai étudié pendant trois heures."},
+  ],
+  "Connectors (B1)":[
+    {fr:"parce que", en:"because", ex:"Je reste parce qu'il pleut."},
+    {fr:"donc", en:"so / therefore", ex:"Il pleuvait, donc je suis resté."},
+    {fr:"cependant", en:"however", ex:"C'est difficile ; cependant, je continue."},
+    {fr:"même si", en:"even if / even though", ex:"J'apprends même si c'est dur."},
+    {fr:"d'abord", en:"first / firstly", ex:"D'abord, je vais étudier."},
+    {fr:"enfin", en:"finally", ex:"Enfin, j'ai réussi."},
+    {fr:"par exemple", en:"for example", ex:"J'aime les langues, par exemple le français."},
+    {fr:"à cause de", en:"because of (negative cause)", ex:"À cause de la pluie, je suis resté."},
+  ],
+};
+
+const TRANSLATE = [
+  {en:"Yesterday it was raining, so we stayed home.", accept:["hier il pleuvait donc nous sommes restés à la maison","hier il pleuvait donc nous sommes restes a la maison","hier il pleuvait alors nous sommes restés à la maison","hier, il pleuvait, donc nous sommes restés à la maison","hier il pleuvait donc on est restés à la maison","hier il pleuvait donc on est resté à la maison"], hint:"Use imparfait (pleuvait) + passé composé (sommes restés)."},
+  {en:"I have two brothers and one sister.", accept:["j'ai deux frères et une sœur","jai deux frères et une sœur","j'ai deux freres et une soeur","jai deux freres et une soeur"], hint:"frères is plural (-s)."},
+  {en:"I would like to reserve a table for four.", accept:["je voudrais réserver une table pour quatre","je voudrais réserver une table pour quatre personnes","je voudrais reserver une table pour quatre"], hint:"je voudrais = polite 'I would like'."},
+  {en:"I am learning French because I want to immigrate to Canada.", accept:["j'apprends le français parce que je veux immigrer au canada","japprends le francais parce que je veux immigrer au canada","j'apprends le français car je veux immigrer au canada"], hint:"apprends (present) + parce que + immigrer au Canada."},
+  {en:"When I was young, I played football.", accept:["quand j'étais jeune je jouais au football","quand jetais jeune je jouais au foot","quand j'étais petit je jouais au foot","quand j'étais jeune, je jouais au football"], hint:"Both verbs in imparfait (étais, jouais)."},
+  {en:"I think it is important to learn a language.", accept:["je pense qu'il est important d'apprendre une langue","je pense que c'est important d'apprendre une langue","je crois qu'il est important d'apprendre une langue"], hint:"je pense que + il est important de + infinitive."},
+  {en:"She went to the market this morning.", accept:["elle est allée au marché ce matin","elle est allee au marche ce matin","elle est allé au marché ce matin"], hint:"aller = être auxiliary: elle est allée."},
+  {en:"I have already eaten.", accept:["j'ai déjà mangé","jai deja mange","j'ai déja mangé"], hint:"déjà goes between auxiliary and participle."},
+  {en:"We have been living in Lagos for five years.", accept:["nous habitons à lagos depuis cinq ans","on habite à lagos depuis cinq ans","nous habitons a lagos depuis cinq ans","j'habite à lagos depuis cinq ans"], hint:"French uses PRESENT + depuis for ongoing duration."},
+  {en:"If I had more time, I would travel.", accept:["si j'avais plus de temps je voyagerais","si javais plus de temps je voyagerais","si j'avais plus de temps, je voyagerais"], hint:"si + imparfait, then conditionnel (voyagerais)."},
+];
+
+const LISTEN = [
+  {fr:"Bonjour, comment allez-vous aujourd'hui ?", en:"Hello, how are you today?"},
+  {fr:"Je voudrais un café, s'il vous plaît.", en:"I would like a coffee, please."},
+  {fr:"Hier, j'ai mangé au restaurant avec mes amis.", en:"Yesterday, I ate at the restaurant with my friends."},
+  {fr:"Quand j'étais petit, j'habitais à la campagne.", en:"When I was little, I lived in the countryside."},
+  {fr:"Je cherche un emploi et un logement à Montréal.", en:"I am looking for a job and housing in Montreal."},
+  {fr:"Elle est allée au marché ce matin pour faire les courses.", en:"She went to the market this morning to do the shopping."},
+  {fr:"Même si c'est difficile, je continue d'apprendre le français.", en:"Even though it's difficult, I keep learning French."},
+  {fr:"Si j'avais plus de temps, je voyagerais partout dans le monde.", en:"If I had more time, I would travel all over the world."},
+  {fr:"Mon objectif est d'obtenir la résidence permanente au Canada.", en:"My goal is to obtain permanent residence in Canada."},
+  {fr:"Pourriez-vous répéter, s'il vous plaît ? Je n'ai pas compris.", en:"Could you repeat, please? I didn't understand."},
+];
+
+const READING = [
+  {
+    text:"Oluwafemi habite à Lagos. Depuis deux ans, il apprend le français parce qu'il veut immigrer au Canada. Chaque matin, il étudie pendant une heure : il révise les verbes, écoute des podcasts et parle avec un professeur en ligne. Bien que ce soit difficile, il ne perd pas espoir. Son objectif est d'obtenir le niveau CLB 7 et la résidence permanente.",
+    qs:[
+      {q:"Depuis combien de temps apprend-il le français ?", opts:["six mois","deux ans","cinq ans","un mois"], a:1},
+      {q:"Pourquoi apprend-il le français ?", opts:["pour le travail à Lagos","pour voyager en France","pour immigrer au Canada","pour ses études"], a:2},
+      {q:"Que fait-il chaque matin ?", opts:["il dort","il étudie une heure","il travaille","il regarde la télé"], a:1},
+    ]
+  },
+  {
+    text:"Le français est devenu un véritable atout pour l'immigration au Canada. Les candidats qui obtiennent un bon niveau de français peuvent recevoir jusqu'à cinquante points supplémentaires. De plus, il existe des tirages spéciaux réservés aux francophones, où le score demandé est souvent beaucoup plus bas. C'est pourquoi de nombreux immigrants décident d'apprendre la langue de Molière.",
+    qs:[
+      {q:"Combien de points le français peut-il ajouter ?", opts:["jusqu'à 10","jusqu'à 25","jusqu'à 50","jusqu'à 100"], a:2},
+      {q:"Qu'est-ce qui est réservé aux francophones ?", opts:["des emplois","des tirages spéciaux","des logements","des diplômes"], a:1},
+      {q:'"La langue de Molière" désigne :', opts:["l'anglais","le français","l'espagnol","le latin"], a:1},
+    ]
+  },
+];
+
+/* ============ LESSONS (LEARN/STUDY) ============ */
+const LESSONS = [
+  {title:"Le présent", level:"A1", ico:"🟢", sub:"How to say what happens now.", practice:"verbs", focus:false, body:`
+    <p>French verbs fall into three groups by ending: <b>-er</b> (parler), <b>-ir</b> (finir), <b>-re</b> (vendre). You drop the ending and add new ones.</p>
+    <h4>Regular -ER verbs (the biggest group)</h4>
+    <table><tr><th>Pronoun</th><th>parler (to speak)</th></tr>
+    <tr><td>je</td><td>parl<b>e</b></td></tr><tr><td>tu</td><td>parl<b>es</b></td></tr><tr><td>il/elle</td><td>parl<b>e</b></td></tr>
+    <tr><td>nous</td><td>parl<b>ons</b></td></tr><tr><td>vous</td><td>parl<b>ez</b></td></tr><tr><td>ils/elles</td><td>parl<b>ent</b></td></tr></table>
+    <h4>Four essential irregulars — memorise these</h4>
+    <table><tr><th></th><th>être</th><th>avoir</th><th>aller</th><th>faire</th></tr>
+    <tr><td>je/j'</td><td>suis</td><td>ai</td><td>vais</td><td>fais</td></tr>
+    <tr><td>tu</td><td>es</td><td>as</td><td>vas</td><td>fais</td></tr>
+    <tr><td>il</td><td>est</td><td>a</td><td>va</td><td>fait</td></tr>
+    <tr><td>nous</td><td>sommes</td><td>avons</td><td>allons</td><td>faisons</td></tr>
+    <tr><td>vous</td><td>êtes</td><td>avez</td><td>allez</td><td>faites</td></tr>
+    <tr><td>ils</td><td>sont</td><td>ont</td><td>vont</td><td>font</td></tr></table>
+    <div class="ex">Je <b>suis</b> ingénieur. — J'<b>ai</b> deux frères. — Je <b>vais</b> au travail. <em>(I am an engineer. I have two brothers. I go to work.)</em></div>`},
+
+  {title:"Le passé composé", level:"A2", ico:"⭐", sub:"Talking about completed past actions — your #1 gap.", practice:"verbs", focus:true, body:`
+    <p>Used for a <b>finished action</b> in the past ("I ate", "she arrived"). Formula:</p>
+    <p style="text-align:center;font-size:1.05rem"><b>subject + (avoir / être) + past participle</b></p>
+    <h4>Past participles by group</h4>
+    <table><tr><th>Group</th><th>Ending</th><th>Example</th></tr>
+    <tr><td>-er</td><td>-é</td><td>manger → mang<b>é</b></td></tr>
+    <tr><td>-ir</td><td>-i</td><td>finir → fin<b>i</b></td></tr>
+    <tr><td>-re</td><td>-u</td><td>vendre → vend<b>u</b></td></tr></table>
+    <p>Common irregulars: faire→<b>fait</b>, prendre→<b>pris</b>, voir→<b>vu</b>, avoir→<b>eu</b>, être→<b>été</b>.</p>
+    <div class="ex">Hier, j'<b>ai mangé</b> au restaurant. — Tu <b>as fait</b> la cuisine. <em>(Yesterday I ate out. You did the cooking.)</em></div>
+    <h4>avoir vs être</h4>
+    <p>Most verbs use <b>avoir</b>. But a small set of movement/change verbs use <b>être</b> — and with être, the participle <b>agrees</b> with the subject (add -e for feminine, -s for plural):</p>
+    <p>The être verbs: aller, venir, arriver, partir, entrer, sortir, monter, descendre, naître, mourir, rester, tomber, devenir, and all reflexive verbs.</p>
+    <div class="ex">Elle <b>est allé<u>e</u></b> au marché. — Ils <b>sont venu<u>s</u></b>. — Elles <b>sont resté<u>es</u></b>. <em>(agreement: -e fem., -s plural, -es fem. plural)</em></div>`},
+
+  {title:"L'imparfait", level:"A2", ico:"⭐", sub:"Past habits, descriptions, and 'was/were doing'.", practice:"verbs", focus:true, body:`
+    <p>Used for <b>ongoing or repeated</b> past actions, descriptions, and background ("I used to...", "it was raining", "when I was a child").</p>
+    <h4>Formation — one rule for almost every verb</h4>
+    <p>Take the <b>nous</b> form of the present (nous parl<b>ons</b>), drop -ons, add: <b>-ais, -ais, -ait, -ions, -iez, -aient</b>.</p>
+    <table><tr><th>Pronoun</th><th>parler → parl-</th></tr>
+    <tr><td>je</td><td>parl<b>ais</b></td></tr><tr><td>tu</td><td>parl<b>ais</b></td></tr><tr><td>il</td><td>parl<b>ait</b></td></tr>
+    <tr><td>nous</td><td>parl<b>ions</b></td></tr><tr><td>vous</td><td>parl<b>iez</b></td></tr><tr><td>ils</td><td>parl<b>aient</b></td></tr></table>
+    <p>Only irregular stem: <b>être</b> → j'<b>étais</b>, tu étais, il était, nous étions...</p>
+    <div class="ex">Quand j'<b>étais</b> petit, je <b>jouais</b> au foot. — Il <b>faisait</b> beau. <em>(When I was little, I used to play football. The weather was nice.)</em></div>`},
+
+  {title:"Passé composé vs imparfait", level:"B1", ico:"⚖️", sub:"The choice that trips everyone up.", practice:"verbs", focus:true, body:`
+    <p>This is the most important past-tense decision in French. Same timeframe, different jobs:</p>
+    <table><tr><th>Passé composé</th><th>Imparfait</th></tr>
+    <tr><td>A single, completed action</td><td>Background, description, weather, feelings</td></tr>
+    <tr><td>Something that happened once</td><td>A habit ("used to / would")</td></tr>
+    <tr><td>Moves the story forward</td><td>Sets the scene</td></tr></table>
+    <div class="ex">Il <b>pleuvait</b> (background) quand je <b>suis sorti</b> (action). <em>(It was raining when I went out.)</em></div>
+    <div class="ex">Avant, je <b>fumais</b> (habit). Un jour, j'<b>ai arrêté</b> (single action). <em>(I used to smoke. One day, I quit.)</em></div>
+    <p><b>Trick:</b> if you can say "was/were ___-ing" or "used to", choose imparfait. If it's a done deal at a point in time, passé composé.</p>`},
+
+  {title:"Le futur proche", level:"A2", ico:"🔜", sub:"The easy way to talk about the future.", practice:"verbs", focus:false, body:`
+    <p>The simplest future: <b>aller (present) + infinitive</b> — just like English "going to".</p>
+    <table><tr><td>je vais</td><td rowspan="3" style="vertical-align:middle">+ infinitive<br>(manger, partir, étudier...)</td></tr>
+    <tr><td>tu vas / il va</td></tr><tr><td>nous allons / vous allez / ils vont</td></tr></table>
+    <div class="ex">Je <b>vais étudier</b> ce soir. — Nous <b>allons immigrer</b> au Canada. <em>(I'm going to study tonight. We're going to immigrate to Canada.)</em></div>`},
+
+  {title:"Le conditionnel & les phrases avec « si »", level:"B1", ico:"💭", sub:"Politeness and hypotheticals.", practice:"verbs", focus:false, body:`
+    <p>The conditional = "would". Formula: <b>infinitive + imparfait endings</b> (-ais, -ais, -ait, -ions, -iez, -aient).</p>
+    <div class="ex">Je <b>voudrais</b> un café. <em>(polite: I would like a coffee.)</em> — Je <b>voyagerais</b> partout. <em>(I would travel everywhere.)</em></div>
+    <h4>"Si" (if) sentences — match the tenses</h4>
+    <table><tr><th>If-clause</th><th>Result clause</th></tr>
+    <tr><td>si + présent</td><td>futur / futur proche</td></tr>
+    <tr><td>si + imparfait</td><td>conditionnel</td></tr></table>
+    <div class="ex">Si j'<b>ai</b> le temps, je <b>vais étudier</b>. — Si j'<b>avais</b> le temps, je <b>voyagerais</b>.</div>`},
+
+  {title:"Articles, genre & négation", level:"A1", ico:"🔤", sub:"Gender, 'the/a', and saying no.", practice:null, focus:false, body:`
+    <p>Every noun is masculine or feminine — learn the article <b>with</b> the word.</p>
+    <table><tr><th></th><th>Masculine</th><th>Feminine</th><th>Plural</th></tr>
+    <tr><td>the</td><td>le (l')</td><td>la (l')</td><td>les</td></tr>
+    <tr><td>a / some</td><td>un</td><td>une</td><td>des</td></tr></table>
+    <div class="ex"><b>le</b> chat, <b>la</b> maison, <b>l'</b>emploi, <b>les</b> amis, <b>un</b> diplôme, <b>une</b> entreprise.</div>
+    <h4>Negation: ne ... pas</h4>
+    <p>Wrap the verb: <b>ne</b> + verb + <b>pas</b>. Other pairs: ne...jamais (never), ne...rien (nothing), ne...plus (no longer).</p>
+    <div class="ex">Je <b>ne</b> parle <b>pas</b> espagnol. — Je <b>n'</b>ai <b>jamais</b> visité Québec.</div>`},
+
+  {title:"Connecteurs pour bien écrire", level:"B1", ico:"🔗", sub:"Linking words that lift your writing to B2.", practice:"translate", focus:true, body:`
+    <p>The TEF writing and speaking sections reward <b>connected, argued</b> ideas. Use these to structure answers:</p>
+    <table><tr><th>To...</th><th>Use</th></tr>
+    <tr><td>give a reason</td><td>parce que, car, à cause de</td></tr>
+    <tr><td>show a result</td><td>donc, alors, c'est pourquoi</td></tr>
+    <tr><td>contrast</td><td>mais, cependant, pourtant, même si</td></tr>
+    <tr><td>order ideas</td><td>d'abord, ensuite, enfin</td></tr>
+    <tr><td>add / give example</td><td>de plus, par exemple</td></tr>
+    <tr><td>conclude</td><td>en conclusion, pour conclure</td></tr></table>
+    <div class="ex">D'abord, le français donne des points. <b>De plus</b>, il existe des tirages spéciaux. <b>C'est pourquoi</b> j'apprends la langue.</div>`},
+
+  {title:"TEF — speaking & writing tips", level:"B2", ico:"🎯", sub:"How the test is scored and how to pass it.", practice:null, focus:false, body:`
+    <p>CLB 7 needs every section above its minimum (Speaking is the hardest at 456/699). Strategy per section:</p>
+    <h4>Speaking (Expression orale)</h4>
+    <p><b>Section A:</b> get information (ask questions about an ad). Prepare polite question forms: "Pourriez-vous me dire...", "Est-ce que...".<br>
+    <b>Section B:</b> persuade someone. Use connectors and give 2–3 reasons. Keep talking — fluency counts more than perfection.</p>
+    <h4>Writing (Expression écrite)</h4>
+    <p><b>Section A:</b> continue a news story (factual, past tenses).<br>
+    <b>Section B:</b> argue an opinion in a letter — structure: intro, 2 arguments with connectors, conclusion.</p>
+    <h4>Listening & Reading</h4>
+    <p>Multiple choice. Practice with TV5Monde and timed mocks. Don't dwell — flag and move on.</p>
+    <div class="ex"><b>Golden rule:</b> a simple sentence said correctly beats a complex one full of errors. Aim for clear, connected, accurate.</div>`},
+];
+
+/* ============ STATE / STORAGE ============ */
+const USERS_KEY="frenchTrainer_users";
+const CUR_KEY="frenchTrainer_current";
+function userKey(name){ return "frenchTrainer_user_"+name; }
+function getUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_KEY))||[]; }catch(e){ return []; } }
+function setUsers(u){ try{ localStorage.setItem(USERS_KEY, JSON.stringify(u)); }catch(e){} }
+function currentUser(){ try{ return localStorage.getItem(CUR_KEY)||null; }catch(e){ return null; } }
+function defaultState(){ return {xp:0, streak:0, lastDay:null, level:"A1", vocab:{}, modeAcc:{}, history:[], _seen:{}}; }
+function load(){
+  const u=currentUser();
+  if(u){ try{ const r=localStorage.getItem(userKey(u)); if(r) return JSON.parse(r); }catch(e){} }
+  return defaultState();
+}
+function save(){ const u=currentUser(); if(u){ try{ localStorage.setItem(userKey(u), JSON.stringify(S)); }catch(e){} } renderHeader(); }
+let S = load();
+function today(){ return new Date().toISOString().slice(0,10); }
+function bumpStreak(){
+  const t = today();
+  if(S.lastDay === t) return;
+  const y = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  S.streak = (S.lastDay === y) ? S.streak+1 : 1;
+  S.lastDay = t;
+}
+function addXp(n){ S.xp += n; bumpStreak(); save(); }
+function recordAcc(mode, correct, total){
+  S.modeAcc[mode] = S.modeAcc[mode] || {c:0,t:0};
+  S.modeAcc[mode].c += correct; S.modeAcc[mode].t += total;
+  save();
+}
+
+/* ============ HELPERS ============ */
+const $ = sel => document.querySelector(sel);
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+function norm(s){ return (s||"").toLowerCase().trim().replace(/[.,!?;:]/g,"").replace(/['']/g,"'").replace(/\s+/g," "); }
+function stripAcc(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
+function loose(s){ return stripAcc(norm(s)).replace(/['\- ]/g,""); }
+function checkText(input, accept){
+  const ni = norm(input);
+  for(const a of accept){ if(ni === norm(a)) return {ok:true}; }
+  const li = loose(input);
+  for(const a of accept){ if(li === loose(a)) return {ok:true, accentTip:true}; }
+  return {ok:false};
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function renderHeader(){
+  $("#stStreak").textContent = S.streak;
+  $("#stXp").textContent = S.xp;
+  $("#stLevel").textContent = S.level;
+  const w=document.getElementById('whoami'); if(w) w.textContent='Road to CLB 7 · '+(currentUser()||'guest');
+}
+
+/* ============ HOME ============ */
+function home(){
+  renderHeader();
+  const acc = m => { const a=S.modeAcc[m]; return a&&a.t? Math.round(100*a.c/a.t)+"% acc" : "not started"; };
+  const v = $("#view");
+  v.innerHTML = "";
+  v.appendChild(el(`
+    <div class="card" style="background:linear-gradient(110deg,#eef4ff,#fff)">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="muted" style="font-size:.85rem">Recommended next step</div>
+          <div style="font-size:1.15rem;font-weight:700" id="recoTitle"></div>
+          <div class="muted" id="recoWhy" style="font-size:.88rem"></div>
+        </div>
+        <button class="btn" id="recoGo">Start →</button>
+      </div>
+    </div>`));
+  v.appendChild(el(`<h2 class="section">Learn the rules</h2>`));
+  const learnTile = el(`<div class="card tile" style="border-color:var(--bleu)"><span class="tag">start here</span><div class="ico">📚</div><h3>Learn / Study</h3><p>Grammar lessons with examples — tenses, articles, connectors, TEF tips. ${(S._seen?Object.keys(S._seen).length:0)} of ${LESSONS.length} read.</p></div>`);
+  learnTile.onclick = ()=>learn();
+  v.appendChild(learnTile);
+  v.appendChild(el(`<h2 class="section">Practice (your focus: past tenses + production)</h2>`));
+  const grid = el(`<div class="grid"></div>`);
+  const tiles = [
+    {id:"verbs", ico:"🧩", t:"Verb Lab", d:"Passé composé, imparfait, more. "+acc("verbs"), focus:true, tag:"focus"},
+    {id:"translate", ico:"✍️", t:"Translation", d:"Build sentences EN→FR. "+acc("translate"), focus:true, tag:"focus"},
+    {id:"listen", ico:"🎧", t:"Listening", d:"Hear French aloud. "+acc("listen"), tag:""},
+    {id:"dictee", ico:"📝", t:"Dictée", d:"Type what you hear. "+acc("dictee"), focus:true, tag:"focus"},
+    {id:"vocab", ico:"📇", t:"Vocabulary", d:"Themed flashcards.", tag:""},
+    {id:"reading", ico:"📖", t:"Reading", d:"Short passages + questions. "+acc("reading"), tag:""},
+    {id:"mock", ico:"🎓", t:"TEF Mock Test", d:"Timed, mixed exam. "+acc("mock"), tag:"timed"},
+    {id:"settings", ico:"⚙️", t:"Settings & Reminder", d:"Set a daily practice reminder.", tag:""},
+    {id:"placement", ico:"🎯", t:"Placement Test", d:"Re-check your level.", tag:""},
+  ];
+  tiles.forEach(t=>{
+    const tile = el(`<div class="card tile ${t.focus?'focus':''}">
+      ${t.tag?`<span class="tag">${t.tag}</span>`:''}
+      <div class="ico">${t.ico}</div>
+      <h3>${t.t}</h3><p>${t.d}</p></div>`);
+    tile.onclick = ()=>MODES[t.id]();
+    grid.appendChild(tile);
+  });
+  v.appendChild(grid);
+
+  // recommendation logic
+  let rec;
+  if(!S.modeAcc.placement) rec={id:"placement",title:"Take the placement test",why:"Pin down your exact level so the app can target your gaps."};
+  else if(!S._seen || !S._seen[1]) rec={id:"learn",title:"Learn the rules first",why:"Study the lessons — start with Passé composé — before drilling. Understanding beats guessing."};
+  else if((S.modeAcc.verbs?.t||0) < 20) rec={id:"verbs",title:"Verb Lab — past tenses",why:"Your placement showed past-tense verbs are the #1 gap. Drill these first."};
+  else if((S.modeAcc.translate?.t||0) < 15) rec={id:"translate",title:"Translation drills",why:"Production (writing) is your weak side — build sentences from scratch."};
+  else rec={id:"listen",title:"Listening practice",why:"Round out the skills the test scores hardest."};
+  $("#recoTitle").textContent = rec.title;
+  $("#recoWhy").textContent = rec.why;
+  $("#recoGo").onclick = ()=>MODES[rec.id]();
+}
+
+/* ============ QUIZ ENGINE ============ */
+function quizScreen(title, total){
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<button class="back" id="bk">← Back to menu</button>`));
+  $("#bk").onclick = home;
+  v.appendChild(el(`<div class="card">
+    <div class="row" style="justify-content:space-between"><b>${title}</b><span class="muted" id="qcount"></span></div>
+    <div class="progress"><i id="qbar" style="width:0%"></i></div>
+    <div id="qbody" style="margin-top:14px"></div>
+  </div>`));
+}
+function setBar(i,total){ $("#qbar").style.width = (100*i/total)+"%"; $("#qcount").textContent = `${i}/${total}`; }
+
+/* generic MCQ runner */
+function runMCQ(title, items, mode, opts={}){
+  items = opts.noShuffle? items : shuffle(items);
+  let i=0, correct=0;
+  quizScreen(title, items.length);
+  function step(){
+    setBar(i, items.length);
+    if(i>=items.length){ return finish(); }
+    const it = items[i];
+    const body=$("#qbody"); body.innerHTML="";
+    if(opts.pre) body.appendChild(el(opts.pre(it)));
+    body.appendChild(el(`<div class="q-prompt">${it.q||opts.q(it)}</div>`));
+    const optArr = it.opts;
+    optArr.forEach((o,idx)=>{
+      const b=el(`<button class="opt">${o}</button>`);
+      b.onclick=()=>{
+        [...body.querySelectorAll('.opt')].forEach(x=>x.disabled=true);
+        const right = idx===it.a;
+        if(right){ b.classList.add('correct'); correct++; addXp(5); }
+        else{ b.classList.add('wrong'); body.querySelectorAll('.opt')[it.a].classList.add('correct'); }
+        const fb=el(`<div class="feedback ${right?'ok':'no'} show">${right?'✅ Correct!':'❌ Not quite.'} ${it.ex?'<br>'+it.ex:''}</div>`);
+        body.appendChild(fb);
+        body.appendChild(nextBtn());
+      };
+      body.appendChild(b);
+    });
+  }
+  function nextBtn(){ const b=el(`<button class="btn" style="margin-top:14px">Next →</button>`); b.onclick=()=>{i++;step();}; return b; }
+  function finish(){ recordAcc(mode,correct,items.length); resultCard(title,correct,items.length); }
+  step();
+}
+
+/* generic text-input runner */
+function runText(title, items, mode, opts={}){
+  items = shuffle(items);
+  let i=0, correct=0; const review=[];
+  quizScreen(title, items.length);
+  function step(){
+    setBar(i, items.length);
+    if(i>=items.length) return finish();
+    const it=items[i];
+    const body=$("#qbody"); body.innerHTML="";
+    body.appendChild(el(`<div class="q-prompt">${opts.prompt(it)}</div>`));
+    if(it.tense) body.appendChild(el(`<span class="pill">${it.tense}</span>`));
+    const inp=el(`<input class="txt" placeholder="Type in French..." autocomplete="off" autocapitalize="off" spellcheck="false">`);
+    const sub=el(`<button class="btn" style="margin-top:14px">Check</button>`);
+    body.appendChild(sub);
+    const fbWrap=el(`<div id="fb"></div>`); body.appendChild(fbWrap);
+    function submit(){
+      const res=checkText(inp.value, it.accept);
+      inp.disabled=true; sub.disabled=true;
+      let cls,msg;
+      if(res.ok && !res.accentTip){ cls='ok'; msg='✅ Correct !'; correct++; addXp(8); review.push({it,ok:true}); }
+      else if(res.ok && res.accentTip){ cls='tip'; msg='✅ Right — watch your accents though.'; correct++; addXp(6); review.push({it,ok:true}); }
+      else { cls='no'; msg='❌ Not quite.'; review.push({it,ok:false}); }
+      fbWrap.appendChild(el(`<div class="feedback ${cls} show">${msg}<br><b>Answer:</b> ${it.accept[0]}${it.ex?'<br>'+it.ex:''}${it.hint?'<br><span class="muted">'+it.hint+'</span>':''}</div>`));
+      const nb=el(`<button class="btn" style="margin-top:12px">Next →</button>`); nb.onclick=()=>{i++;step();}; fbWrap.appendChild(nb);
+    }
+    sub.onclick=submit;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!inp.disabled) submit(); });
+  }
+  function finish(){ recordAcc(mode,correct,items.length); resultCard(title,correct,items.length,review); }
+  step();
+}
+
+/* ============ MODE: PLACEMENT ============ */
+function placement(){
+  const items = PLACEMENT.map(p=>({q:`<span class="muted" style="font-size:.8rem">${p.lvl}</span><br>${p.q}`, opts:p.opts, a:p.a, lvl:p.lvl}));
+  let i=0, correct=0; const byLvl={A1:[0,0],A2:[0,0],B1:[0,0],B2:[0,0]};
+  quizScreen("🎯 Placement Test", items.length);
+  function step(){
+    setBar(i,items.length);
+    if(i>=items.length) return finish();
+    const it=items[i], lvl=PLACEMENT[i].lvl;
+    const body=$("#qbody"); body.innerHTML="";
+    body.appendChild(el(`<div class="q-prompt">${it.q}</div>`));
+    it.opts.forEach((o,idx)=>{
+      const b=el(`<button class="opt">${o}</button>`);
+      b.onclick=()=>{
+        [...body.querySelectorAll('.opt')].forEach(x=>x.disabled=true);
+        byLvl[lvl][1]++;
+        const right=idx===it.a;
+        if(right){ b.classList.add('correct'); correct++; byLvl[lvl][0]++; }
+        else{ b.classList.add('wrong'); body.querySelectorAll('.opt')[it.a].classList.add('correct'); }
+        const nb=el(`<button class="btn" style="margin-top:14px">Next →</button>`); nb.onclick=()=>{i++;step();}; body.appendChild(nb);
+      };
+      body.appendChild(b);
+    });
+  }
+  function finish(){
+    const order=["A1","A2","B1","B2"]; let lvl="A1";
+    for(const L of order){ const a=byLvl[L]; if(a[1]>0 && a[0]/a[1]>=0.66) lvl=L; else break; }
+    const clbMap={A1:"pre-CLB 4",A2:"CLB 4–5",B1:"CLB 5–6",B2:"CLB 7 ✅"};
+    S.level=lvl; recordAcc("placement",correct,items.length); addXp(20); save();
+    const v=$("#view"); v.innerHTML="";
+    v.appendChild(el(`<div class="card center">
+      <div class="muted">Your estimated level</div>
+      <div class="big" style="color:var(--bleu)">${lvl}</div>
+      <div class="pill">≈ ${clbMap[lvl]}</div>
+      <p style="margin-top:14px">Score: <b>${correct}/${items.length}</b></p>
+      <p class="muted" style="font-size:.9rem">${lvl==='B2'?'You are at the target — switch to TEF mock practice!':'Target is B2 / CLB 7. Your fastest route: lessons + Verb Lab + Translation, daily.'}</p>
+      <div class="row center" style="justify-content:center;margin-top:10px">
+        <button class="btn" id="toLearn">Start learning →</button>
+        <button class="btn ghost" id="toHome">Menu</button>
+      </div>
+    </div>`));
+    document.getElementById("toLearn").onclick=learn; document.getElementById("toHome").onclick=home;
+  }
+  step();
+}
+
+/* ============ MODE: VERBS ============ */
+function verbs(){
+  runText("🧩 Verb Lab", VERBS.slice(), "verbs", {
+    prompt: it => it.q.replace("___", '<span class="blank">___</span>')
+  });
+}
+
+/* ============ MODE: TRANSLATE ============ */
+function translate(){
+  runText("✍️ Translation", TRANSLATE.slice(), "translate", {
+    prompt: it => `Translate:<br><span style="color:var(--bleu)">"${it.en}"</span>`
+  });
+}
+
+/* ============ MODE: READING ============ */
+function reading(){
+  const passage = READING[Math.floor(Math.random()*READING.length)];
+  const items = passage.qs.map(q=>({q:q.q, opts:q.opts, a:q.a}));
+  runMCQ("📖 Reading", items, "reading", {
+    noShuffle:true,
+    pre: ()=>`<div class="card" style="background:#f7faff;font-size:1.02rem;line-height:1.7">${passage.text}</div>`
+  });
+}
+
+/* ============ MODE: LISTENING (TTS) ============ */
+let voicesReady=false;
+function pickVoice(){
+  const vs=speechSynthesis.getVoices();
+  return vs.find(v=>/fr-FR/i.test(v.lang)) || vs.find(v=>/^fr/i.test(v.lang)) || null;
+}
+function speak(text){
+  if(!('speechSynthesis' in window)){ alert("Your browser doesn't support speech. Try Chrome or Edge."); return; }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang="fr-FR"; u.rate=0.9;
+  const v=pickVoice(); if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+function listen(){
+  if('speechSynthesis' in window){ speechSynthesis.getVoices(); }
+  const items = shuffle(LISTEN).slice(0,8);
+  let i=0, correct=0;
+  quizScreen("🎧 Listening", items.length);
+  function step(){
+    setBar(i,items.length);
+    if(i>=items.length) return finish();
+    const it=items[i];
+    const others = shuffle(LISTEN.filter(x=>x!==it)).slice(0,3).map(x=>x.en);
+    const opts = shuffle([it.en, ...others]);
+    const aIdx = opts.indexOf(it.en);
+    const body=$("#qbody"); body.innerHTML="";
+    body.appendChild(el(`<div class="center" style="margin:6px 0 16px"><button class="speak-btn" id="play">🔊</button><div class="muted" style="margin-top:8px">Tap to hear it again</div></div>`));
+    body.appendChild(el(`<div class="q-prompt" style="font-size:1.05rem">What does it mean?</div>`));
+    document.getElementById("play").onclick=()=>speak(it.fr);
+    speak(it.fr);
+    opts.forEach((o,idx)=>{
+      const b=el(`<button class="opt">${o}</button>`);
+      b.onclick=()=>{
+        [...body.querySelectorAll('.opt')].forEach(x=>x.disabled=true);
+        const right=idx===aIdx;
+        if(right){ b.classList.add('correct'); correct++; addXp(6); }
+        else{ b.classList.add('wrong'); body.querySelectorAll('.opt')[aIdx].classList.add('correct'); }
+        body.appendChild(el(`<div class="feedback ${right?'ok':'no'} show">${right?'✅ Bravo !':'❌'} <br><b>${it.fr}</b></div>`));
+        const nb=el(`<button class="btn" style="margin-top:12px">Next →</button>`); nb.onclick=()=>{i++;step();}; body.appendChild(nb);
+      };
+      body.appendChild(b);
+    });
+  }
+  function finish(){ recordAcc("listen",correct,items.length); resultCard("🎧 Listening",correct,items.length); }
+  step();
+}
+
+/* ============ MODE: VOCAB (flashcards) ============ */
+function vocab(){
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<button class="back" id="bk">← Back to menu</button>`));
+  document.getElementById("bk").onclick=home;
+  const themes=Object.keys(VOCAB);
+  let theme=themes[0];
+  v.appendChild(el(`<div class="card"><b>📇 Vocabulary</b><div class="deck-list" id="decks"></div><div id="flash"></div></div>`));
+  function renderDecks(){
+    const d=$("#decks"); d.innerHTML="";
+    themes.forEach(t=>{ const b=el(`<button class="${t===theme?'active':''}">${t}</button>`); b.onclick=()=>{theme=t;renderDecks();startDeck();}; d.appendChild(b); });
+  }
+  function startDeck(){
+    const cards=shuffle(VOCAB[theme]); let i=0, correct=0; let flipped=false;
+    const f=$("#flash");
+    function card(){
+      if(i>=cards.length){
+        recordAcc("vocab",correct,cards.length);
+        f.innerHTML=`<div class="center" style="padding:20px 0"><div class="big">🎉</div><p>Deck done — you knew <b>${correct}/${cards.length}</b>.</p><button class="btn" id="again">Again</button></div>`;
+        document.getElementById("again").onclick=startDeck; return;
+      }
+      const c=cards[i]; flipped=false;
+      f.innerHTML="";
+      f.appendChild(el(`<div class="progress"><i style="width:${100*i/cards.length}%"></i></div>`));
+      const cardBox=el(`<div class="card center" style="cursor:pointer;min-height:140px;display:flex;flex-direction:column;justify-content:center"><div style="font-size:1.5rem;font-weight:700;color:var(--bleu)">${c.fr}</div><div class="muted" style="margin-top:6px;font-size:.85rem">tap to reveal</div></div>`);
+      f.appendChild(cardBox);
+      cardBox.onclick=()=>{
+        if(flipped) return; flipped=true;
+        cardBox.innerHTML=`<div style="font-size:1.4rem;font-weight:700">${c.en}</div><div class="muted" style="margin-top:10px;font-style:italic">${c.ex}</div>`;
+        const row=el(`<div class="row" style="justify-content:center;margin-top:14px"><button class="btn red sm" id="no">Didn't know</button><button class="btn sm" id="yes">Knew it ✓</button></div>`);
+        f.appendChild(row);
+        document.getElementById("yes").onclick=()=>{correct++;addXp(3);i++;card();};
+        document.getElementById("no").onclick=()=>{i++;card();};
+      };
+    }
+    card();
+  }
+  renderDecks(); startDeck();
+}
+
+/* ============ RESULT CARD ============ */
+function resultCard(title, correct, total, review){
+  const v=$("#view"); v.innerHTML="";
+  const pct=Math.round(100*correct/total);
+  const msg = pct>=80?"Excellent ! 🎉" : pct>=60?"Good progress — keep going!" : "Keep practising — repetition wins.";
+  v.appendChild(el(`<div class="card center"><div class="muted">${title}</div><div class="big" style="color:${pct>=60?'var(--good)':'var(--rouge)'}">${correct}/${total}</div><p>${msg}</p><div class="row center" style="justify-content:center"><button class="btn" id="retry">Again</button><button class="btn ghost" id="menu">Menu</button></div></div>`));
+  if(review && review.some(r=>!r.ok)){
+    const miss=review.filter(r=>!r.ok);
+    const t=el(`<div class="card"><b>Review your misses</b><table class="recap"></table></div>`);
+    const tb=t.querySelector('table');
+    miss.forEach(r=>{ tb.appendChild(el(`<tr><td>❌</td><td>${r.it.en||r.it.q}<br><span style="color:var(--good)">${r.it.accept[0]}</span></td></tr>`)); });
+    v.appendChild(t);
+  }
+  document.getElementById("retry").onclick=()=>{
+    if(title.includes('Verb')) verbs();
+    else if(title.includes('Translation')) translate();
+    else if(title.includes('Listening')) listen();
+    else if(title.includes('Dictée')) dictee();
+    else if(title.includes('Reading')) reading();
+    else home();
+  };
+  document.getElementById("menu").onclick=home;
+}
+
+/* ============ MODE: LEARN / STUDY ============ */
+function learn(){
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<button class="back" id="bk">← Back to menu</button>`));
+  document.getElementById("bk").onclick=home;
+  v.appendChild(el(`<div class="card"><b>📚 Learn / Study</b><p class="muted" style="margin:.3rem 0 0;font-size:.9rem">Read a lesson, then tap “Practice this” to drill it. ⭐ lessons target your gaps. Read in order for the smoothest path.</p></div>`));
+  const list=el(`<div class="grid" style="margin-top:14px"></div>`);
+  LESSONS.forEach((L,idx)=>{
+    const seen = S._seen && S._seen[idx];
+    const t=el(`<div class="card tile ${L.focus?'focus':''}">${L.focus?'<span class="tag">focus</span>':(seen?'<span class="tag">✓ read</span>':'')}<div class="ico">${L.ico}</div><h3>${L.title}</h3><p>${L.sub}</p><span class="pill">${L.level}</span></div>`);
+    t.onclick=()=>openLesson(idx);
+    list.appendChild(t);
+  });
+  v.appendChild(list);
+}
+function openLesson(idx){
+  const L=LESSONS[idx];
+  if(!S._seen) S._seen={};
+  if(!S._seen[idx]){ S._seen[idx]=1; S.lessonsViewed=Object.keys(S._seen).length; addXp(5); save(); }
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<button class="back" id="bk">← All lessons</button>`));
+  document.getElementById("bk").onclick=learn;
+  v.appendChild(el(`<div class="card"><span class="pill">${L.level}</span><h2 style="margin:.4rem 0 .2rem">${L.ico} ${L.title}</h2><div class="lesson">${L.body}</div></div>`));
+  const row=el(`<div class="row" style="margin-top:14px">${L.practice?`<button class="btn" id="prac">Practice this →</button>`:''}<button class="btn ghost" id="next">Next lesson →</button><button class="btn ghost" id="menu">Menu</button></div>`);
+  v.appendChild(row);
+  if(L.practice) document.getElementById("prac").onclick=()=>MODES[L.practice]();
+  document.getElementById("next").onclick=()=>openLesson((idx+1)%LESSONS.length);
+  document.getElementById("menu").onclick=home;
+}
+
+/* ============ MODE: DICTÉE ============ */
+function dictee(){
+  const items=shuffle(LISTEN).slice(0,8);
+  let i=0,correct=0;const review=[];
+  quizScreen("📝 Dictée — type what you hear", items.length);
+  function step(){
+    setBar(i,items.length);
+    if(i>=items.length) return finish();
+    const it=items[i];
+    const body=$("#qbody");body.innerHTML="";
+    body.appendChild(el(`<div class="center" style="margin:6px 0 14px"><button class="speak-btn" id="play">🔊</button><div class="muted" style="margin-top:8px">Tap to replay · write the French sentence</div></div>`));
+    document.getElementById("play").onclick=()=>speak(it.fr);
+    speak(it.fr);
+    const inp=el(`<input class="txt" placeholder="Écrivez ce que vous entendez..." autocomplete="off" autocapitalize="off" spellcheck="false">`);
+    body.appendChild(inp);inp.focus();
+    const sub=el(`<button class="btn" style="margin-top:14px">Check</button>`);body.appendChild(sub);
+    const fb=el(`<div id="fb"></div>`);body.appendChild(fb);
+    function submit(){
+      const res=checkText(inp.value,[it.fr]);
+      inp.disabled=true;sub.disabled=true;
+      let cls,msg,ok=!!res.ok;
+      if(ok&&!res.accentTip){cls='ok';msg='✅ Parfait !';correct++;addXp(8);}
+      else if(ok&&res.accentTip){cls='tip';msg='✅ Right words — watch accents & apostrophes.';correct++;addXp(6);}
+      else{cls='no';msg='❌ Not quite.';}
+      review.push({it:{en:it.en,accept:[it.fr]},ok});
+      fb.appendChild(el(`<div class="feedback ${cls} show">${msg}<br><b>${it.fr}</b><br><span class="muted">${it.en}</span></div>`));
+      const nb=el(`<button class="btn" style="margin-top:12px">Next →</button>`);nb.onclick=()=>{i++;step();};fb.appendChild(nb);
+    }
+    sub.onclick=submit;
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!inp.disabled)submit();});
+  }
+  function finish(){recordAcc("dictee",correct,items.length);resultCard("📝 Dictée",correct,items.length,review);}
+  step();
+}
+
+/* ============ MODE: TEF-STYLE MOCK TEST (timed) ============ */
+function mock(){
+  const pool=[];
+  shuffle(PLACEMENT).slice(0,5).forEach(p=>pool.push({type:'mcq',q:`<span class="muted" style="font-size:.78rem">Grammaire</span><br>${p.q}`,opts:p.opts,a:p.a}));
+  const passage=READING[Math.floor(Math.random()*READING.length)];
+  passage.qs.forEach(q=>pool.push({type:'mcq',pre:`<div class="card" style="background:#f7faff;font-size:.98rem;line-height:1.6">${passage.text}</div>`,q:`<span class="muted" style="font-size:.78rem">Compréhension écrite</span><br>${q.q}`,opts:q.opts,a:q.a}));
+  shuffle(LISTEN).slice(0,3).forEach(it=>{
+    const others=shuffle(LISTEN.filter(x=>x!==it)).slice(0,3).map(x=>x.en);
+    const opts=shuffle([it.en,...others]);
+    pool.push({type:'audio',fr:it.fr,q:`<span class="muted" style="font-size:.78rem">Compréhension orale</span><br>Que signifie cette phrase ?`,opts,a:opts.indexOf(it.en)});
+  });
+  const items=shuffle(pool);
+  let i=0,correct=0,timeLeft=12*60;
+  quizScreen("🎓 TEF-style Mock Test", items.length);
+  const hdr=document.querySelector('#view .card .row');
+  const timerEl=el(`<span class="pill" id="mtimer" style="background:#fdeaea;color:var(--rouge)">⏱ 12:00</span>`);
+  if(hdr) hdr.appendChild(timerEl);
+  function fmt(s){const m=Math.floor(s/60),ss=String(s%60).padStart(2,'0');return m+':'+ss;}
+  const tid=setInterval(()=>{
+    if(!document.body.contains(timerEl)){clearInterval(tid);return;}
+    timeLeft--;
+    if(timeLeft<=0){clearInterval(tid);timerEl.textContent='⏱ 0:00';finish(true);return;}
+    timerEl.textContent='⏱ '+fmt(timeLeft);
+  },1000);
+  function step(){
+    setBar(i,items.length);
+    if(i>=items.length) return finish(false);
+    const it=items[i];
+    const body=$("#qbody");body.innerHTML="";
+    if(it.pre) body.appendChild(el(it.pre));
+    if(it.type==='audio'){
+      body.appendChild(el(`<div class="center" style="margin:4px 0 12px"><button class="speak-btn" id="play">🔊</button></div>`));
+      document.getElementById("play").onclick=()=>speak(it.fr);
+      speak(it.fr);
+    }
+    body.appendChild(el(`<div class="q-prompt">${it.q}</div>`));
+    it.opts.forEach((o,idx)=>{
+      const b=el(`<button class="opt">${o}</button>`);
+      b.onclick=()=>{
+        [...body.querySelectorAll('.opt')].forEach(x=>x.disabled=true);
+        const right=idx===it.a;
+        if(right){b.classList.add('correct');correct++;}
+        else{b.classList.add('wrong');body.querySelectorAll('.opt')[it.a].classList.add('correct');}
+        const nb=el(`<button class="btn" style="margin-top:14px">Next →</button>`);nb.onclick=()=>{i++;step();};body.appendChild(nb);
+      };
+      body.appendChild(b);
+    });
+  }
+  function finish(timeUp){
+    clearInterval(tid);
+    recordAcc("mock",correct,items.length);addXp(15);save();
+    const pct=Math.round(100*correct/items.length);
+    const v=$("#view");v.innerHTML="";
+    v.appendChild(el(`<div class="card center"><div class="muted">${timeUp?'⏱ Temps écoulé ! ':''}Mock test result</div><div class="big" style="color:${pct>=70?'var(--good)':'var(--rouge)'}">${correct}/${items.length}</div><div class="pill">${pct}%</div><p style="margin-top:12px">${pct>=80?'On track for CLB 7 — keep doing timed mocks to lock it in.':pct>=60?'Getting there. Aim for 80%+ before booking the TEF.':'Keep building with lessons + drills, then retry.'}</p><div class="row center" style="justify-content:center"><button class="btn" id="again">Try again</button><button class="btn ghost" id="menu">Menu</button></div></div>`));
+    document.getElementById("again").onclick=mock;document.getElementById("menu").onclick=home;
+  }
+  step();
+}
+
+/* ============ DAILY REMINDER ============ */
+function scheduleNotify(){
+  if(window._notifyTid) clearTimeout(window._notifyTid);
+  if(!S.notify || !S.reminderTime) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const parts=S.reminderTime.split(':'); const h=+parts[0], m=+parts[1];
+  const now=new Date(); const next=new Date(); next.setHours(h,m,0,0);
+  if(next<=now) next.setTime(next.getTime()+86400000);
+  window._notifyTid=setTimeout(()=>{
+    try{ new Notification('French Trainer 🇫🇷', {body:"Time for today's French — one lesson + a drill keeps the streak alive!"}); }catch(e){}
+    scheduleNotify();
+  }, next-now);
+}
+
+/* ============ SETTINGS ============ */
+function settings(){
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<button class="back" id="bk">← Back to menu</button>`));
+  document.getElementById("bk").onclick=home;
+  const done = S.lastDay===today();
+  v.appendChild(el(`<div class="card">
+    <b>⚙️ Settings — Daily reminder</b>
+    <p class="muted" style="font-size:.9rem;margin:.4rem 0">Pick a time and the app will nudge you to practise. ${done?'✅ You have already practised today!':'You have not practised yet today.'}</p>
+    <label style="display:block;margin:10px 0 4px;font-weight:600">Reminder time</label>
+    <input class="txt" type="time" id="rtime" value="${S.reminderTime||'07:00'}" style="max-width:160px">
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="enable">Enable reminders</button>
+      <button class="btn ghost" id="off">Turn off</button>
+      <button class="btn ghost" id="test">Test now</button>
+      <button class="btn ghost" id="switch">Switch profile</button>
+    </div>
+    <div id="rstatus" class="feedback show ${S.notify?'ok':'tip'}" style="margin-top:14px"></div>
+    <p class="muted" style="font-size:.82rem;margin-top:12px">Note: browser reminders fire while this page is open in a tab (even in the background). Keep the tab open to get nudged. Want a reminder even when the app is closed? Ask me to set up a system reminder too.</p>
+  </div>`));
+  function setStatus(){ const s=document.getElementById("rstatus"); s.className='feedback show '+(S.notify?'ok':'tip'); s.textContent=S.notify?('🔔 Reminders ON, daily at '+(S.reminderTime||'07:00')):'🔕 Reminders are off.'; }
+  setStatus();
+  document.getElementById("rtime").onchange=e=>{ S.reminderTime=e.target.value; save(); if(S.notify) scheduleNotify(); setStatus(); };
+  document.getElementById("enable").onclick=()=>{
+    S.reminderTime=document.getElementById("rtime").value||'07:00';
+    if(!('Notification' in window)){ alert('This browser does not support notifications. Try Chrome or Edge.'); return; }
+    Notification.requestPermission().then(p=>{
+      if(p==='granted'){ S.notify=true; save(); scheduleNotify(); setStatus(); try{ new Notification('French Trainer 🇫🇷',{body:'Reminders on. À demain !'}); }catch(e){} }
+      else { alert('Permission denied. Allow notifications for this page in your browser settings, then try again.'); }
+    });
+  };
+  document.getElementById("off").onclick=()=>{ S.notify=false; save(); if(window._notifyTid) clearTimeout(window._notifyTid); setStatus(); };
+  document.getElementById("test").onclick=()=>{ if('Notification' in window && Notification.permission==='granted'){ try{ new Notification('French Trainer 🇫🇷',{body:'Test: time to practise!'}); }catch(e){} } else { alert('Enable reminders first.'); } };
+  document.getElementById("switch").onclick=logout;
+}
+
+const MODES={placement,verbs,translate,reading,listen,dictee,vocab,mock,learn,settings};
+
+/* ============ AUTH / PROFILES ============ */
+function authScreen(){
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<div class="card center"><div class="ico" style="font-size:2.2rem">🇫🇷</div><h2 style="margin:.3rem 0">Welcome to French Trainer</h2><p class="muted">Choose your profile or create a new one. Each profile keeps its own streak, XP and progress.</p></div>`));
+  const users=getUsers();
+  if(users.length){
+    const list=el(`<div class="card"><b>Your profiles</b><div id="ulist" style="margin-top:8px"></div></div>`);
+    v.appendChild(list);
+    const ul=list.querySelector('#ulist');
+    users.forEach(u=>{
+      const b=el(`<button class="opt">👤 ${u.name}${u.pin?' 🔒':''}</button>`);
+      b.onclick=()=>loginUser(u.name);
+      ul.appendChild(b);
+    });
+  }
+  v.appendChild(el(`<div class="card"><b>New profile</b>
+    <input class="txt" id="newname" placeholder="Your name" style="margin-top:8px" autocomplete="off">
+    <input class="txt" id="newpin" placeholder="Optional PIN (numbers)" inputmode="numeric" style="margin-top:8px" autocomplete="off">
+    <button class="btn" id="create" style="margin-top:12px">Create profile</button>
+    <div id="aerr" class="feedback no" style="display:none"></div></div>`));
+  document.getElementById("create").onclick=()=>{
+    const name=document.getElementById("newname").value.trim();
+    const pin=document.getElementById("newpin").value.trim();
+    const err=document.getElementById("aerr");
+    function fail(msg){ err.style.display='block'; err.className='feedback no show'; err.textContent=msg; }
+    if(!name) return fail('Please enter a name.');
+    let users=getUsers();
+    if(users.some(u=>u.name.toLowerCase()===name.toLowerCase())) return fail('That name already exists — pick it from the list above.');
+    users.push({name, pin:pin||null}); setUsers(users);
+    localStorage.setItem(CUR_KEY, name);
+    S=defaultState(); save();
+    home(); scheduleNotify();
+  };
+}
+function loginUser(name){
+  const u=getUsers().find(x=>x.name===name);
+  if(u && u.pin){
+    const entered=prompt('Enter PIN for '+name+':');
+    if(entered!==u.pin){ alert('Incorrect PIN.'); return; }
+  }
+  localStorage.setItem(CUR_KEY, name);
+  S=load(); renderHeader(); home(); scheduleNotify();
+}
+function logout(){
+  try{ localStorage.removeItem(CUR_KEY); }catch(e){}
+  if(window._notifyTid) clearTimeout(window._notifyTid);
+  authScreen();
+}
+function migrateOld(){
+  if(getUsers().length===0){
+    let old=null; try{ old=localStorage.getItem("frenchTrainer_v1"); }catch(e){}
+    if(old){ const name="Oluwafemi"; setUsers([{name, pin:null}]); try{ localStorage.setItem(userKey(name), old); localStorage.setItem(CUR_KEY, name); }catch(e){} }
+  }
+}
+
+/* boot */
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>{voicesReady=true;}; }
+migrateOld();
+if(currentUser()){ S=load(); home(); scheduleNotify(); } else { authScreen(); }
+</script>
+</body>
+</html>
