@@ -415,6 +415,7 @@ function home(){
     {id:"translate", ico:"✍️", t:"Translation", d:"Build sentences EN→FR. "+acc("translate"), focus:true, tag:"focus"},
     {id:"listen", ico:"🎧", t:"Listening", d:"Hear French aloud. "+acc("listen"), tag:""},
     {id:"dictee", ico:"📝", t:"Dictée", d:"Type what you hear. "+acc("dictee"), focus:true, tag:"focus"},
+    {id:"speaking", ico:"🎙️", t:"Speaking", d:"Read aloud, get scored. "+acc("speaking"), focus:true, tag:"focus"},
     {id:"vocab", ico:"📇", t:"Vocabulary", d:"Themed flashcards.", tag:""},
     {id:"reading", ico:"📖", t:"Reading", d:"Short passages + questions. "+acc("reading"), tag:""},
     {id:"mock", ico:"🎓", t:"TEF Mock Test", d:"Timed, mixed exam. "+acc("mock"), tag:"timed"},
@@ -501,6 +502,7 @@ function runText(title, items, mode, opts={}){
     body.appendChild(el(`<div class="q-prompt">${opts.prompt(it)}</div>`));
     if(it.tense) body.appendChild(el(`<span class="pill">${it.tense}</span>`));
     const inp=el(`<input class="txt" placeholder="Type in French..." autocomplete="off" autocapitalize="off" spellcheck="false">`);
+    body.appendChild(inp); inp.focus();
     const sub=el(`<button class="btn" style="margin-top:14px">Check</button>`);
     body.appendChild(sub);
     const fbWrap=el(`<div id="fb"></div>`); body.appendChild(fbWrap);
@@ -876,7 +878,56 @@ function settings(){
   document.getElementById("switch").onclick=logout;
 }
 
-const MODES={placement,verbs,translate,reading,listen,dictee,vocab,mock,learn,settings};
+/* ============ MODE: SPEAKING (speech recognition) ============ */
+function speaking(){
+  const v=$("#view"); v.innerHTML="";
+  v.appendChild(el(`<button class="back" id="bk">← Back to menu</button>`));
+  document.getElementById("bk").onclick=home;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    v.appendChild(el(`<div class="card"><b>🎙️ Speaking practice</b><p class="muted" style="margin-top:.4rem">Your browser can't do speech recognition here. Use <b>Chrome</b> or <b>Edge</b>, and open the app from a secure <b>https://</b> address (your GitHub Pages link). Microphone features don't work from a local file.</p></div>`));
+    return;
+  }
+  function words(s){ return stripAcc(norm(s)).split(' ').filter(Boolean); }
+  function similar(said, target){ const A=words(said), B=words(target); if(!B.length) return 0; let hit=0; const used=[]; B.forEach(w=>{ const idx=A.findIndex((x,j)=>x===w && used.indexOf(j)<0); if(idx>=0){hit++;used.push(idx);} }); return hit/B.length; }
+  const items=shuffle(LISTEN).slice(0,6);
+  let i=0,correct=0;
+  quizScreen("🎙️ Speaking — read it aloud", items.length);
+  function step(){
+    setBar(i,items.length);
+    if(i>=items.length) return finish();
+    const it=items[i];
+    const body=$("#qbody"); body.innerHTML="";
+    body.appendChild(el(`<div class="q-prompt" style="font-size:1.15rem">${it.fr}</div>`));
+    body.appendChild(el(`<div class="muted" style="margin:-8px 0 14px">${it.en}</div>`));
+    body.appendChild(el(`<div class="center"><button class="btn ghost sm" id="hear">🔊 Hear it</button> &nbsp; <button class="speak-btn" id="mic" style="vertical-align:middle">🎤</button><div class="muted" style="margin-top:8px" id="micmsg">Tap the mic, then read the sentence aloud</div></div>`));
+    const fb=el(`<div id="fb"></div>`); body.appendChild(fb);
+    document.getElementById("hear").onclick=()=>speak(it.fr);
+    const mic=document.getElementById("mic"), micmsg=document.getElementById("micmsg");
+    mic.onclick=()=>{
+      let rec; try{ rec=new SR(); }catch(e){ micmsg.textContent='Could not start microphone.'; return; }
+      rec.lang='fr-FR'; rec.interimResults=false; rec.maxAlternatives=3;
+      micmsg.textContent='🎙️ Listening… speak now'; mic.disabled=true;
+      rec.onresult=(e)=>{
+        let best=''; let ok=false; const tgt=loose(it.fr);
+        for(let k=0;k<e.results[0].length;k++){ const t=e.results[0][k].transcript; if(!best) best=t; if(loose(t)===tgt){ ok=true; best=t; break; } }
+        const score = ok?100:Math.round(100*similar(best, it.fr));
+        if(score>=70){ correct++; addXp(8); }
+        fb.innerHTML='';
+        fb.appendChild(el(`<div class="feedback ${score>=70?'ok':'no'} show">${score>=70?'✅ Bien dit !':'🔁 Close — try again'}<br>You said: <i>${best||'(nothing heard)'}</i><br><b>Target:</b> ${it.fr}<br><span class="muted">Match: ${score}%</span></div>`));
+        const nb=el(`<button class="btn" style="margin-top:12px">Next →</button>`); nb.onclick=()=>{i++;step();}; fb.appendChild(nb);
+        const rt=el(`<button class="btn ghost" style="margin-top:12px;margin-left:8px">Retry</button>`); rt.onclick=()=>step(); fb.appendChild(rt);
+      };
+      rec.onerror=(e)=>{ micmsg.textContent='Mic error: '+e.error+'. Allow microphone access and use an https page.'; mic.disabled=false; };
+      rec.onend=()=>{ mic.disabled=false; };
+      try{ rec.start(); }catch(err){ micmsg.textContent='Could not start mic — check microphone permission.'; mic.disabled=false; }
+    };
+  }
+  function finish(){ recordAcc("speaking",correct,items.length); resultCard("🎙️ Speaking",correct,items.length); }
+  step();
+}
+
+const MODES={placement,verbs,translate,reading,listen,dictee,speaking,vocab,mock,learn,settings};
 
 /* ============ AUTH / PROFILES ============ */
 function authScreen(){
